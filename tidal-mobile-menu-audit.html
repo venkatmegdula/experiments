@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tidal Vape Mobile Menu UX Audit</title>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; margin: 0; background: #f6f7fb; color: #1f2937; }
+    .wrap { max-width: 980px; margin: 32px auto; background: #fff; padding: 28px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    h1,h2,h3 { margin-top: 0; }
+    .meta { background: #eef2ff; padding: 12px; border-radius: 8px; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; }
+    th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; vertical-align: top; }
+    th { background: #f3f4f6; }
+    .sev-high { color: #b91c1c; font-weight: 700; }
+    .sev-med { color: #92400e; font-weight: 700; }
+    .sev-low { color: #1d4ed8; font-weight: 700; }
+    .tag { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #e0e7ff; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Tidal Vape – Mobile Main Menu / Burger Navigation Audit</h1>
+    <p class="meta">
+      URL audited: <a href="https://www.tidalvape.co.uk/">https://www.tidalvape.co.uk/</a><br>
+      Audit date: 2026-05-06 (UTC)<br>
+      Scope: top header + main navigation + mobile/burger menu information architecture and behavior.
+    </p>
+
+    <h2>1) High-level website structure</h2>
+    <ul>
+      <li><strong>Utility/top header:</strong> contact details, service links (Click &amp; Collect, Careers, About Us, Visit Store), social icons, shipping message.</li>
+      <li><strong>Commerce overlays:</strong> cart drawer, checkout controls, login shortcut.</li>
+      <li><strong>Main navigation system:</strong> large catalog-style mega-menu with category tiles + deep multi-column links.</li>
+      <li><strong>Promotional layer:</strong> deals and sale shortcuts mixed with category navigation.</li>
+      <li><strong>Editorial/help links:</strong> "Help &amp; Guidance" nested inside product categories.</li>
+    </ul>
+
+    <h2>2) Mobile menu behavior review (UX + Frontend)</h2>
+    <p>
+      Based on structure inspection, the menu appears to be carrying desktop mega-menu depth into mobile context. That creates cognitive load and likely interaction friction on smaller screens.
+    </p>
+
+    <h3>Observed bugs / gaps</h3>
+    <table>
+      <thead>
+        <tr><th>Severity</th><th>Observation</th><th>Why it matters</th><th>Recommendation</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="sev-high">High</td>
+          <td>Potential duplicate links in utility/header (e.g., Careers appears repeated).</td>
+          <td>Looks broken, reduces trust, and wastes scarce mobile header real estate.</td>
+          <td>Deduplicate header data source and add a render guard in nav component.</td>
+        </tr>
+        <tr>
+          <td class="sev-high">High</td>
+          <td>Very deep and long menu tree in mobile context (many nested lists + deal links + guides).</td>
+          <td>Increases time-to-product, causes scroll fatigue, and hurts first-time discovery.</td>
+          <td>Adopt 2-level mobile IA: <em>Primary category → curated subcategory</em>; move tertiary links to "View all" pages.</td>
+        </tr>
+        <tr>
+          <td class="sev-med">Medium</td>
+          <td>Category blocks seem repeated/duplicated in menu structure.</td>
+          <td>Duplication causes confusion and may indicate rendering/performance overhead.</td>
+          <td>Audit nav JSON/CMS model for duplicate nodes; enforce uniqueness in build/validation step.</td>
+        </tr>
+        <tr>
+          <td class="sev-med">Medium</td>
+          <td>Promotional links (Hot Sale / Multi-buy) mixed at same hierarchy as core categories.</td>
+          <td>Users shopping by product type can be distracted by offer-first hierarchy.</td>
+          <td>Add separate "Deals" entry point in burger menu; keep catalog taxonomy clean.</td>
+        </tr>
+        <tr>
+          <td class="sev-med">Medium</td>
+          <td>Potentially inconsistent naming and typos (e.g., singular/plural forms, "Accessorie Types").</td>
+          <td>Inconsistent IA labels reduce scan speed and perceived quality.</td>
+          <td>Create taxonomy glossary and enforce label linting before publish.</td>
+        </tr>
+        <tr>
+          <td class="sev-low">Low</td>
+          <td>Multiple content types in one nav panel (products + brands + guides + top sellers).</td>
+          <td>Not strictly broken, but dense for mobile scanning.</td>
+          <td>Progressive disclosure tabs: <span class="tag">Shop</span> <span class="tag">Brands</span> <span class="tag">Learn</span>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>3) UX best-practice improvements for burger menu</h3>
+    <ol>
+      <li><strong>Sticky compact header:</strong> burger (left), logo (center), cart/search (right), keep row height 48–56px.</li>
+      <li><strong>Off-canvas panel:</strong> full-height drawer with clear close button + swipe-to-close.</li>
+      <li><strong>Accordion rules:</strong> only one top-level section open at a time.</li>
+      <li><strong>Search-first on mobile:</strong> put search input at top of drawer for intent-driven users.</li>
+      <li><strong>Quick links row:</strong> "Vape Kits", "E-Liquids", "Deals", "Track Order" as tappable chips.</li>
+      <li><strong>Touch targets:</strong> minimum 44px high tap areas with visible chevrons for expandable nodes.</li>
+      <li><strong>Accessibility:</strong> ensure <code>aria-expanded</code>, focus trap in drawer, ESC to close, and screen-reader labels.</li>
+      <li><strong>Performance:</strong> lazy-render deep children only when parent expanded.</li>
+    </ol>
+
+    <h3>4) Frontend implementation checklist</h3>
+    <ul>
+      <li>Use normalized nav data model with stable IDs and unique slugs.</li>
+      <li>Automated test: fail build if duplicate menu labels + same URL exist in same level.</li>
+      <li>Track analytics events: <code>menu_open</code>, <code>menu_expand_category</code>, <code>menu_click_item</code>, <code>menu_close</code>.</li>
+      <li>Add session replay markers to compare old vs redesigned mobile menu.</li>
+      <li>A/B test: baseline vs simplified 2-level IA and compare CTR to PDP/PLP.</li>
+    </ul>
+
+    <h3>5) Suggested acceptance criteria for redesigned responsive menu</h3>
+    <ul>
+      <li>No duplicate utility links in top header.</li>
+      <li>Max 8 primary menu items in burger first screen.</li>
+      <li>Max 2 taps to reach any high-volume product listing.</li>
+      <li>CLS-safe drawer open/close behavior; no layout jump.</li>
+      <li>Keyboard and screen-reader complete support.</li>
+    </ul>
+  </main>
+</body>
+</html>
